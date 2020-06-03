@@ -7,7 +7,7 @@ const today = new Date();
 
 Promise.all([
     personio.getEvents(today),
-    dayOfTheYear.getToday(),
+    // dayOfTheYear.getToday(),
 ])
 .then(result => {
     const todayEvents = result[0];

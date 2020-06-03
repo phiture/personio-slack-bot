@@ -5,11 +5,11 @@ const format = require('date-fns/format');
 const { SLACK_HOOK_URL, SLACK_CHANNEL } = process.env;
 
 exports.sendPersonioEvents = (day, dayOfYear, events) => {
-    const headerText = getHeaderText(day, dayOfYear);
+    const headerText = getHeaderText(day, dayOfYear);    
     const eventMessage = getEventsMessage(events);
     const fullMessage = `${headerText}\n\n${eventMessage}`;
 
-    console.log(fullMessage);
+    // console.log(fullMessage);
 
     const block = {
         type: 'section',
@@ -17,11 +17,11 @@ exports.sendPersonioEvents = (day, dayOfYear, events) => {
             type: 'mrkdwn',
             text: fullMessage,
         },
-        accessory: {
-            type: 'image',
-            image_url: dayOfYear.imageUrl,
-            alt_text: dayOfYear.title
-        }
+        // accessory: {
+        //     type: 'image',
+        //     image_url: dayOfYear.imageUrl,
+        //     alt_text: dayOfYear.title
+        // }
     };
 
     if (SLACK_HOOK_URL) {
@@ -30,8 +30,9 @@ exports.sendPersonioEvents = (day, dayOfYear, events) => {
 };
 
 const getHeaderText = (day, dayOfYear) => {
-    const dayOfTheYearLink = `<${dayOfYear.href}|${dayOfYear.title}>`;
-    return `*${format(day, 'dddd Do of MMMM')}* - ${dayOfTheYearLink}`;
+    // const dayOfTheYearLink = `<${dayOfYear.href}|${dayOfYear.title}>`;
+    // return `*${format(day, 'dddd Do of MMMM')}* - ${dayOfTheYearLink}`;
+    return `*${format(day, 'dddd, Do of MMMM')}*`;
 };
 
 const getEventsMessage = events => {
@@ -42,15 +43,17 @@ const getEventsMessage = events => {
 
     return Object.keys(eventGroups).reduce((message, calendarId) => {
         const groupTitle = getEventTypeMessage(calendarId);
+        console.log(calendarId);
+        
         if (!groupTitle) {
             return message;
         }
         const people = eventGroups[calendarId]
             .map(event => {
                 if (event.start.getTime() === event.end.getTime()) {
-                    return `- ${event.name}`;
+                    return `> ${event.name}`;
                 }
-                return `- ${event.name} [${formatDate(event.start)} - ${formatDate(event.end)}]`;
+                return `> ${event.name} [${formatDate(event.start)} - ${formatDate(event.end)}]`;
             })
             .join('\n');
 
@@ -67,3 +70,8 @@ const sendSlackBlocks = blocks => axios.post(SLACK_HOOK_URL, {
 });
 
 const getEventTypeMessage = calendarId => process.env[`PERSONIO_MESSAGE_${calendarId}`];
+
+
+//https://api.slack.com/reference/surfaces/formatting#block-formatting
+
+//•
