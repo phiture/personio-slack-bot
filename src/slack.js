@@ -39,11 +39,11 @@ const getEventsMessage = events => {
     if (!events.length) {
         return "Today there are no events in Personio's calendar\n";
     }
-    const eventGroups = _.groupBy(events, 'calendarId');
+    let customGroups = customGroup(events, "ABSENT")
+    const eventGroups = _.groupBy(customGroups, 'calendarId');    
 
     return Object.keys(eventGroups).reduce((message, calendarId) => {
         const groupTitle = getEventTypeMessage(calendarId);
-        console.log(calendarId);
         
         if (!groupTitle) {
             return message;
@@ -68,6 +68,17 @@ const sendSlackBlocks = blocks => axios.post(SLACK_HOOK_URL, {
     text: '',
     blocks,
 });
+
+const customGroup = (events, groupName) => {
+    const groupCalendars = process.env[`GROUP_${groupName}`]
+    if (!groupCalendars) return events
+    return events.map( event => {
+        if (groupCalendars.includes(event.calendarId)) {
+            event.calendarId = groupName
+        }
+        return event
+    })
+}
 
 const getEventTypeMessage = calendarId => process.env[`PERSONIO_MESSAGE_${calendarId}`];
 
