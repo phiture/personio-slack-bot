@@ -47,9 +47,6 @@ const getEventsMessage = events => {
     return Object.keys(eventsGroupped).reduce((message, calendarId) => {
         const groupTitle = getEventTypeMessage(calendarId) || calendarId;
         
-        // if (!groupTitle) {
-        //     return message;
-        // }
         const people = eventsGroupped[calendarId]
             .map(event => {
                 if (event.start.getTime() === event.end.getTime()) {
