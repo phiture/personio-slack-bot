@@ -39,16 +39,18 @@ const getEventsMessage = events => {
     if (!events.length) {
         return "Today there are no events in Personio's calendar\n";
     }
-    let customGroups = customGroup(events, "ABSENT")
-    const eventGroups = _.groupBy(customGroups, 'calendarId');    
+    
+    const eventsWithCustomGroups = findAndReplaceGrouppedEventCalendars(events)
 
-    return Object.keys(eventGroups).reduce((message, calendarId) => {
+    const eventsGroupped = _.groupBy(eventsWithCustomGroups, 'calendarId');   
+
+    return Object.keys(eventsGroupped).reduce((message, calendarId) => {
         const groupTitle = getEventTypeMessage(calendarId);
         
         if (!groupTitle) {
             return message;
         }
-        const people = eventGroups[calendarId]
+        const people = eventsGroupped[calendarId]
             .map(event => {
                 if (event.start.getTime() === event.end.getTime()) {
                     return `> ${event.name}`;
@@ -69,6 +71,21 @@ const sendSlackBlocks = blocks => axios.post(SLACK_HOOK_URL, {
     blocks,
 });
 
+
+const findAndReplaceGrouppedEventCalendars = (events) => {
+    const customGroupNames = process.env.CUSTOM_GROUPS.split(',');
+
+    let customGrouppedEvents = customGroupNames.reduce((acc,curr) => {
+        return customGroup(acc, curr)
+    }, events)
+
+    return customGrouppedEvents
+}
+
+
+// replace all grouped calendarIds with the groupName
+// e.g. if the GROUP_BIRTHSDAYANDSICK=BRITHSDAY,SICK
+// All events with the ids BRITHSDAY or SICK will be replaced with BIRTHSDAYANDSICK
 const customGroup = (events, groupName) => {
     const groupCalendars = process.env[`GROUP_${groupName}`]
     if (!groupCalendars) return events
